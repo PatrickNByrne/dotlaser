@@ -161,7 +161,7 @@ dotlaser_bootstrap()
         2)
             echo "Installing in subtree mode"
             echo "Note: The dotlaser repo must reside in your dotfiles path"
-            dotlaser_prefix="$(echo "$(dotlaser_abspath "$dotlaser_dir")" | sed "s@$(dotlaser_abspath "$1")@@")"
+            dotlaser_prefix="$(echo "$(dotlaser_abspath "$dotlaser_dir")" | sed "s@$(dotlaser_abspath "$1")/@@")"
             (cd "$1" && git remote add dotlaser "$dotlaser_repo" && git subtree add --squash --prefix="$dotlaser_prefix/" dotlaser master)
             ;;
         3)
