@@ -1,0 +1,9 @@
+dotfiles_dir="$HOME/dotfiles"
+dotfiles_backup_dir="$HOME/dotfiles_backup"
+dotfiles_config="$dotfiles_dir/dotlaser.files"
+# Specify the git directory for dotlaser updates
+dotlaser_gitdir=""
+# Specify the git type for updates. [submod,subtree,hard]
+dotlaser_gittype="hard"
+# Specify the dotlaser repo
+dotlaser_repo="https://github.com/PatrickNByrne/dotlaser.git"
