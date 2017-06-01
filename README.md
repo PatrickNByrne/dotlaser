@@ -1,0 +1,2 @@
+# dotlaser
+Zap your config
