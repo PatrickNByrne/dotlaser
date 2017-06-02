@@ -53,7 +53,7 @@ usage()
       --install same as -i
       --update same as -u
       --list same as -l
-	  --uninstall Uninstall all managed dotfiles
+      --uninstall Uninstall all managed dotfiles
 STOP
 }
 
@@ -477,18 +477,18 @@ case $task in
     bootstrap)
         echo "Bootstrapping $target"
         dotlaser_target $target
-	    dotlaser_bootstrap $target
-	    ;;
+        dotlaser_bootstrap $target
+        ;;
     add)
         echo "Adding $target"
         dotlaser_target $target
         dotlaser_add $target
-	    ;;
+        ;;
     remove)
         echo "Removing $target"
         dotlaser_target $target
         dotlaser_remove $target
-	    ;;
+        ;;
     install)
         echo "Installing dotfiles"
         dotlaser_install
@@ -496,14 +496,14 @@ case $task in
     update)
         echo "Updating dotlaser"
         dotlaser_update
-	    ;;
+        ;;
     list)
         echo "Listing dotfiles"
         dotlaser_list
-	    ;;
+        ;;
     uninstall)
         echo "Uninstalling dotfiles"
         dotlaser_uninstall
-	    ;;
+        ;;
     esac
 
