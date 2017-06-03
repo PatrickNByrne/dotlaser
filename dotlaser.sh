@@ -150,7 +150,7 @@ dotlaser_bootstrap()
     # Copy and update our cfg file
     cp "$dotlaser_dir/dotlaserrc" "$1"
     sed -i "s@dotfiles_dir=.*@dotfiles_dir=\"$(dotlaser_relpath "$1")\"@g" "$1/dotlaserrc"
-    printf "How would you like to install? [1 - Hard Copy, 2 - Subtree, 3 - Submodule]\n"
+    printf "How would you like to install? [1 - Hard Copy, 2 - Link, 3 - Manually]\n"
     read -p "Please select install option [1,2,3]: " user_choice
     case "$user_choice" in
         1)
@@ -159,19 +159,11 @@ dotlaser_bootstrap()
             cp "$dotlaser_path" "$1"
             ;;
         2)
-            echo "Installing in subtree mode"
-            echo "Note: The dotlaser repo must reside in your dotfiles path"
+            echo "Installing in link mode"
             dotlaser_prefix="$(echo "$(dotlaser_abspath "$dotlaser_dir")" | sed "s@$(dotlaser_abspath "$1")/@@")"
-            (cd "$1" && git remote add dotlaser "$dotlaser_repo" && git subtree add --squash --prefix="$dotlaser_prefix/" dotlaser master)
-            ;;
-        3)
-            echo "Installing in submodule mode"
-            echo "Note: The dotlaser repo must reside in your dotfiles path"
-            (cd "$1" && git submodule add "$dotlaser_repo" "$dotlaser_dir")
             ;;
         *)
-            echo "Error: Unrecognized option"
-            exit 1
+            echo "Please refer to the README for manual installation assistance"
             ;;
     esac
 }
