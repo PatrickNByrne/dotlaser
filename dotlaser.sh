@@ -7,7 +7,7 @@
 # ------------------------------------------------------------------
 #    Todo:
 #        Write update function
-#        Make sure install function can handle creating missing folders in path
+#        On remove - check if installed and prune
 #        Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
@@ -60,6 +60,15 @@ STOP
 dotlaser_abspath()
 {
     [[ -z "$1" ]] && echo "Error: Null Path" && exit 1
+    if [[ "$task" = "install" ]] || [[ "$task" = "list" ]]; then
+        if [[ "$1" = '$HOME'* ]]; then
+            echo "$1" | sed "s@\$HOME@$HOME@"
+            return
+        else
+            echo "$1"
+            return
+        fi
+    fi
     (
     eval cd "$(dirname "$1")"
     echo "$PWD/$(basename "$1")"
@@ -128,10 +137,16 @@ dotlaser_backup()
         if [[ ! -d "$dotfiles_backup_dir/old" ]]; then
         mkdir -p "$dotfiles_backup_dir/old"
         fi
+        # Check if the file exists in old and remove
+	[[ -e "$dotfiles_backup_dir/old/$(basename "$1")" ]] && rm -R "$dotfiles_backup_dir/old/$(basename "$1")"
         # Move the old backup into the old folder
-        mv "$backup_target" "$dotfiles_backup_dir/old"
+        mv -f "$backup_target" "$dotfiles_backup_dir/old"
     fi
-    cp -a "$1" "$dotfiles_backup_dir/"
+    if [[ "$2" = "move" ]]; then
+        mv -f "$1" "$dotfiles_backup_dir/"
+    else
+        cp -a "$1" "$dotfiles_backup_dir/"
+    fi
 }
 
 dotlaser_bootstrap()
@@ -160,7 +175,15 @@ dotlaser_bootstrap()
             ;;
         2)
             echo "Installing in link mode"
-            dotlaser_prefix="$(echo "$(dotlaser_abspath "$dotlaser_dir")" | sed "s@$(dotlaser_abspath "$1")/@@")"
+            # Check if target is in user's HOME
+	    if [[ "$(dotlaser_abspath "$dotlaser_path")" = *"$(dotlaser_abspath "$HOME")"* ]]; then
+                userhome="$(dotlaser_abspath "$HOME")"
+		rellink="$(echo $(dotlaser_abspath "$1") | sed -e "s@$userhome@@" -e 's@[^/]@@g' -e 's@/@../@g')"
+                reltarget="$(echo $(dotlaser_abspath "$dotlaser_path") | sed "s@$userhome/@@")"
+                ln -s "$rellink$reltarget" "$1"
+            else
+                ln -s "$dotlaser_path" "$1"
+            fi
             ;;
         *)
             echo "Please refer to the README for manual installation assistance"
@@ -200,14 +223,14 @@ dotlaser_update()
                 git clone --depth=1 "$dotlaser_repo" .
             fi
             # Get new script version
-            dotlaser_version="$(grep "^version=" "$dotlaser_repo/dotlaser.sh" | sed 's/^version="//')"
+            dotlaser_version="$(grep "^version=" "$dotlaser_gitdir/dotlaser.sh" | sed 's/^version="//')"
             # Verify overwrite
             printf "You're about to update dotlaser from version %s to %s\n" "$version" "$dotlaser_version"
-            printf "Overwriting %s with %s\n" "$dotlaser_path" "$dotlaser_repo/dotlaser.sh"
+            printf "Overwriting %s with %s\n" "$dotlaser_path" "$dotlaser_gitdir/dotlaser.sh"
             read -p "Is this correct? [y/N]: " user_choice
             user_choice="${user_choice:0:1}"
             [[ ! ${user_choice,,} = "y" ]] && exit 0
-            cp "$dotlaser_repo/dotlaser.sh" "$dotlaser_path"
+            cp "$dotlaser_gitdir/dotlaser.sh" "$dotlaser_path"
             )
             ;;
         subtree)
@@ -222,7 +245,7 @@ dotlaser_update()
                 exit 1
             fi
             git subtree pull --prefix=PatrickNByrne/dotfiles --squash dotlaser master
-            dotlaser_version="$(grep "^version=" "$dotlaser_repo/dotlaser.sh" | sed 's/^version="//')"
+            dotlaser_version="$(grep "^version=" "$dotlaser_gitdir/dotlaser.sh" | sed 's/^version="//')"
             printf "Updated from %s to %s\n" "$version" "$dotlaser_version"
             )
             echo "Don't forget to commit your changes!"
@@ -240,7 +263,7 @@ dotlaser_update()
             fi
             git checkout -f master
             git pull --squash
-            dotlaser_version="$(grep "^version=" "$dotlaser_repo/dotlaser.sh" | sed 's/^version="//')"
+            dotlaser_version="$(grep "^version=" "$dotlaser_gitdir/dotlaser.sh" | sed 's/^version="//')"
             printf "Updated from %s to %s\n" "$version" "$dotlaser_version"
             )
             echo "Don't forget to commit your changes!"
@@ -327,10 +350,14 @@ dotlaser_install()
                     user_choice="${user_choice:0:1}"
                     [[ ! ${user_choice,,} = "y" ]] && continue
                     # Backup the existing file
-                    dotlaser_backup "$target"
+                    dotlaser_backup "$target" "move"
+                fi
+                # Check if the parent dir exists and create it if not
+                if [[ ! -d "$(dirname "$target")" ]]; then
+                    mkdir -p "$(dirname "$target")"
                 fi
                 # Link the dotfiles target to the fs target removing whats there
-                ln -sfn "$dotfiles_target" "$target"
+		ln -sfn "$dotfiles_target" "$target"
                 ;;
             Missing)
                 echo "Error: Unable to locate $target in $dotfiles_dir"
