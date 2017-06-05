@@ -6,7 +6,7 @@
 #       Manage your dotfiles precisely and effortlessly
 # ------------------------------------------------------------------
 #    Todo:
-#        Write update function
+#        Fix update function
 #        On remove - check if installed and prune
 #        Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
@@ -196,10 +196,10 @@ dotlaser_update()
     # Check if git is installed
     git --version 2>&1 >/dev/null
     [[ "$?" -ne "0" ]] && echo "Error: git not found" && exit 1
-    # Check if a git type is set and set default
-    [[ -z "$dotlaser_gittype" ]] && dotlaser_gittype="hard"
-    case "$dotlaser_gittype" in
+    # Process the update type config variable
+    case "$dotlaser_updatetype" in
         hard)
+            echo "Starting hard update"
             # Check if a git directory is specified and set default
             [[ -z "$dotlaser_gitdir" ]] && dotlaser_gitdir="/tmp/dotlaser"
             # Check the git dir and create it if required
@@ -244,7 +244,7 @@ dotlaser_update()
                 echo "Error: Changes detected in $dotlaser_path"
                 exit 1
             fi
-            git subtree pull --prefix=PatrickNByrne/dotfiles --squash dotlaser master
+            # Broken ## git subtree pull --prefix=PatrickNByrne/dotfiles --squash dotlaser master
             dotlaser_version="$(grep "^version=" "$dotlaser_gitdir/dotlaser.sh" | sed 's/^version="//')"
             printf "Updated from %s to %s\n" "$version" "$dotlaser_version"
             )
@@ -269,7 +269,7 @@ dotlaser_update()
             echo "Don't forget to commit your changes!"
             ;;
         *)
-            echo "Error: Unknown update type $dotlaser_gittype"
+            echo "Error: Unknown update type $dotlaser_updatetype"
             exit 1
             ;;
         esac
