@@ -11,7 +11,7 @@
 #        Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
-version=0.1.4
+version=0.1.6
 
 # --- Functions ----------------------------------------------------
 
@@ -196,12 +196,15 @@ dotlaser_update()
     # Check if git is installed
     git --version 2>&1 >/dev/null
     [[ "$?" -ne "0" ]] && echo "Error: git not found" && exit 1
+    # Check if git dir is set and get a full path
+    [[ -n "$dotlaser_gitdir" ]] && dotlaser_gitdir="$(dotlaser_abspath "$dotlaser_gitdir")"
     # Process the update type config variable
     case "$dotlaser_updatetype" in
         hard)
-            echo "Starting hard update"
+            echo "Starting hard update" 
             # Check if a git directory is specified and set default
             [[ -z "$dotlaser_gitdir" ]] && dotlaser_gitdir="/tmp/dotlaser"
+            echo "Cloning into $dotlaser_gitdir"
             # Check the git dir and create it if required
             if [[ ! -d "$dotlaser_gitdir" ]]; then
                 mkdir -p "$dotlaser_gitdir"
@@ -230,7 +233,7 @@ dotlaser_update()
             read -p "Is this correct? [y/N]: " user_choice
             user_choice="${user_choice:0:1}"
             [[ ! ${user_choice,,} = "y" ]] && exit 0
-            cp "$dotlaser_gitdir/dotlaser.sh" "$dotlaser_path"
+            cp --remove-destination "$dotlaser_gitdir/dotlaser.sh" "$(dotlaser_abspath $dotlaser_path)"
             )
             ;;
         subtree)
@@ -244,7 +247,10 @@ dotlaser_update()
                 echo "Error: Changes detected in $dotlaser_path"
                 exit 1
             fi
-            git subtree pull --prefix="$dotlaser_gitdir" --squash $dotlaser_repo master
+            # Get the subtree prefix
+            dotfiles_dir="$(dotlaser_abspath "$dotfiles_dir")"
+            subtree_prefix="$(echo "$dotlaser_gitdir" | sed "s@$dotfiles_dir/@@")"
+            git subtree pull --prefix="$subtree_prefix" --squash -m "Update Plugin" $dotlaser_repo master
             dotlaser_version="$(grep "^version=" "$dotlaser_gitdir/dotlaser.sh" | sed 's/^version=//')"
             printf "Updated from version %s to %s\n" "$version" "$dotlaser_version"
             )
