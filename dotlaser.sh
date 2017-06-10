@@ -11,7 +11,7 @@
 #        Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
-version=0.1.2
+version=0.1.4
 
 # --- Functions ----------------------------------------------------
 
@@ -225,7 +225,7 @@ dotlaser_update()
             # Get new script version
             dotlaser_version="$(grep "^version=" "$dotlaser_gitdir/dotlaser.sh" | sed 's/^version=//')"
             # Verify overwrite
-            printf "You're about to update dotlaser from version %s to %s\n" "$dotlaser_version" "$version"
+            printf "You're about to update dotlaser from version %s to %s\n" "$version" "$dotlaser_version" 
             printf "Overwriting %s with %s\n" "$dotlaser_path" "$dotlaser_gitdir/dotlaser.sh"
             read -p "Is this correct? [y/N]: " user_choice
             user_choice="${user_choice:0:1}"
@@ -244,9 +244,9 @@ dotlaser_update()
                 echo "Error: Changes detected in $dotlaser_path"
                 exit 1
             fi
-            git subtree pull --prefix="$dotlaser_gitdir" --squash dotlaser master
+            git subtree pull --prefix="$dotlaser_gitdir" --squash $dotlaser_repo master
             dotlaser_version="$(grep "^version=" "$dotlaser_gitdir/dotlaser.sh" | sed 's/^version=//')"
-            printf "Updated from %s to %s\n" "$dotlaser_version" "$version"
+            printf "Updated from version %s to %s\n" "$version" "$dotlaser_version"
             )
             echo "Don't forget to commit your changes!"
             ;;
@@ -264,7 +264,7 @@ dotlaser_update()
             git checkout -f master
             git pull --squash
             dotlaser_version="$(grep "^version=" "$dotlaser_gitdir/dotlaser.sh" | sed 's/^version=//')"
-            printf "Updated from %s to %s\n" "$dotlaser_version" "$version"
+            printf "Updated from version %s to %s\n" "$version" "$dotlaser_version"
             )
             echo "Don't forget to commit your changes!"
             ;;

@@ -5,8 +5,10 @@
 
 ### Subtree
 <code>
-cd \<your dotfiles directory\>
-git subtree add --prefix dotlaser/ https://github.com/PatrickNByrne/dotlaser master --squash
+cd &lt;your dotfiles directory&gt;
+
+git subtree add --prefix ./dotlaser/ https://github.com/PatrickNByrne/dotlaser master --squash
+
 ./dotlaser/dotlaser.sh -b .
 </code>
 
