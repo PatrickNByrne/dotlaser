@@ -11,7 +11,7 @@
 #        Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
-version=0.1.6
+version=0.1.7
 
 # --- Functions ----------------------------------------------------
 
@@ -259,7 +259,7 @@ dotlaser_update()
         submod)
             [[ -z "$dotlaser_gitdir" ]] && echo "Error: Can't find git dir" && exit 1
             (
-            cd "$dotlaser_dir"
+            cd "$dotlaser_gitdir"
             # Check for changes in dotlaser repo dir
             git ls-files -o | grep >/dev/null . && echo "Warning: There are uncommited files in $dotlaser_gitdir"
             git diff --quiet
