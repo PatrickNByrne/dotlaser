@@ -1,17 +1,19 @@
 #!/bin/bash
 # ------------------------------------------------------------------
 # Author: Patrick Byrne
+# License: Apache 2.0
 # Title: dotlaser
 # Description:
 #       Manage your dotfiles precisely and effortlessly
 # ------------------------------------------------------------------
 #    Todo:
-#        Fix update function
+#        Add profile support
+#        Add shim bootstrap method
 #        On remove - check if installed and prune
 #        Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
-version=0.1.7
+version=0.1.8
 
 # --- Functions ----------------------------------------------------
 
@@ -88,7 +90,11 @@ dotlaser_loadconfig()
 {
     # Set the default config file if not specified
     if [[ -z $dotlaser_config ]]; then
+      if [[ -f "$(dotlaser_abspath "$HOME/.dotlaserrc")" ]]; then
+        dotlaser_config="$(dotlaser_abspath "$HOME/.dotlaserrc")"
+      else
         dotlaser_config="$(dotlaser_abspath $(dirname "$0")/dotlaserrc)"
+      fi
     fi
     # Verify config file is sane and source it
     if [[ ! -f $dotlaser_config ]]; then
@@ -303,14 +309,14 @@ dotlaser_add()
     # Copy the target file to dotfiles location
     cp -a "$1" "$dotfiles_dir/$target_basename"
     # Add the target file to dotlaser file list
-    echo "$target_relpath:$dotfile_relpath:$dotlaser_filetype" >> "$dotfiles_config"
+    echo "$target_relpath:$dotfile_relpath:$dotlaser_filetype:default" >> "$dotfiles_config"
 }
 
 dotlaser_remove()
 {
-    target="$(dotlaser_relpath "$target")"
+    target="$(dotlaser_relpath "$target")" 
     # Read in the config file entry for target 
-    IFS=':' read -r target dotfiles_target dotlaser_filetype <<<"$(grep -m 1 "$target:" "$dotfiles_config")"
+    IFS=':' read -r target dotfiles_target dotlaser_filetype dotlaser_profile <<<"$(grep -m 1 "$target:" "$dotfiles_config")"
     # Check if the file was found in the config
     if [[ -z $dotfiles_target ]]; then
         echo "Error: File not found in config"
@@ -337,73 +343,89 @@ dotlaser_remove()
         
 dotlaser_install()
 {
+    # If a target is set, create a break point
+    if [[ -n "$target" ]]; then
+      loopstop="$(dotlaser_abspath "$target")"
+    fi
     # Loop through the config file
-    while IFS=':' read -r target dotfiles_target dotlaser_filetype <&9; do
+    while IFS=':' read -r target dotfiles_target dotlaser_filetype dotlaser_profile <&9; do
         target="$(dotlaser_abspath "$target")"
         dotfiles_target="$(dotlaser_abspath "$dotfiles_target")"
-        dotlaser_status "$target" "$dotfiles_target"       
-        case "$dotlaser_status" in
-            Installed)
-                echo "$target is already installed"
-                ;;
-            Uninstalled)
-                echo "Installing $target"
-                # Check if the file exists
-                if [[ -e "$target" ]]; then
-                    # Verify removal
-                    printf "You're about to overwrite %s\n" "$target"
-                    read -p "Is this correct? [y/N]: " user_choice
-                    user_choice="${user_choice:0:1}"
-                    [[ ! ${user_choice,,} = "y" ]] && continue
-                    # Backup the existing file
-                    dotlaser_backup "$target" "move"
-                fi
-                # Check if the parent dir exists and create it if not
-                if [[ ! -d "$(dirname "$target")" ]]; then
-                    mkdir -p "$(dirname "$target")"
-                fi
-                # Link the dotfiles target to the fs target removing whats there
-		ln -sfn "$dotfiles_target" "$target"
-                ;;
-            Missing)
-                echo "Error: Unable to locate $target in $dotfiles_dir"
-                exit 1
-                ;;
-            *)
-                echo "Error: Unable to determine status of $target"
-                exit 1
-                ;;
-        esac
+        # Check for a loopstop or a match
+        if [[ -z "$loopstop" ]] || [[ "$loopstop" = "$target" ]] || \
+          [[ "$loopstop" = "$dotfiles_target" ]]; then
+          dotlaser_status "$target" "$dotfiles_target"       
+          case "$dotlaser_status" in
+              Installed)
+                  echo "$target is already installed"
+                  ;;
+              Uninstalled)
+                  echo "Installing $target"
+                  # Check if the file exists
+                  if [[ -e "$target" ]]; then
+                      # Verify removal
+                      printf "You're about to overwrite %s\n" "$target"
+                      read -p "Is this correct? [y/N]: " user_choice
+                      user_choice="${user_choice:0:1}"
+                      [[ ! ${user_choice,,} = "y" ]] && continue
+                      # Backup the existing file
+                      dotlaser_backup "$target" "move"
+                  fi
+                  # Check if the parent dir exists and create it if not
+                  if [[ ! -d "$(dirname "$target")" ]]; then
+                      mkdir -p "$(dirname "$target")"
+                  fi
+                  # Link the dotfiles target to the fs target removing whats there
+                  ln -sfn "$dotfiles_target" "$target"
+                  ;;
+              Missing)
+                  echo "Error: Unable to locate $target in $dotfiles_dir"
+                  exit 1
+                  ;;
+              *)
+                  echo "Error: Unable to determine status of $target"
+                  exit 1
+                  ;;
+          esac
+        fi
     done 9< "$dotfiles_config"
 }
 
 dotlaser_uninstall()
 {
+    # If a target is set, create a break point
+    if [[ -n "$target" ]]; then
+      loopstop="$(dotlaser_abspath "$target")"
+    fi
     # Loop through the config file
-    while IFS=':' read -r target dotfiles_target dotlaser_filetype <&9; do
+    while IFS=':' read -r target dotfiles_target dotlaser_filetype dotlaser_profile <&9; do
         target="$(dotlaser_abspath "$target")"
         dotfiles_target="$(dotlaser_abspath "$dotfiles_target")"
-        dotlaser_status "$target" "$dotfiles_target"       
-        case "$dotlaser_status" in
-            Installed)
-                echo "Uninstalling $target"
-                # This is a precaution - Check if target is a symlink
-                if [[ -h "$target" ]]; then
-                    rm -r "$target"
-                fi
-                ;;
-            Uninstalled)
-                echo "$target is not installed"
-                ;;
-            Missing)
-                echo "Error: Unable to locate $target in $dotfiles_dir"
-                exit 1
-                ;;
-            *)
-                echo "Error: Unable to determine status of $target"
-                exit 1
-                ;;
-        esac
+        # Check for a loopstop or a match
+        if [[ -z "$loopstop" ]] || [[ "$loopstop" = "$target" ]] || \
+          [[ "$loopstop" = "$dotfiles_target" ]]; then
+          dotlaser_status "$target" "$dotfiles_target"       
+          case "$dotlaser_status" in
+              Installed)
+                  echo "Uninstalling $target"
+                  # This is a precaution - Check if target is a symlink
+                  if [[ -h "$target" ]]; then
+                      rm -r "$target"
+                  fi
+                  ;;
+              Uninstalled)
+                  echo "$target is not installed"
+                  ;;
+              Missing)
+                  echo "Error: Unable to locate $target in $dotfiles_dir"
+                  exit 1
+                  ;;
+              *)
+                  echo "Error: Unable to determine status of $target"
+                  exit 1
+                  ;;
+          esac
+        fi
     done 9< "$dotfiles_config"
 }
 
@@ -423,7 +445,7 @@ dotlaser_list()
 {
     echo
     printf "%-30s | %-30s | %-20s\n" "Target" "File Type" "Status" | tr " " "_"
-    while IFS=':' read -r target dotfiles_target dotlaser_filetype; do
+    while IFS=':' read -r target dotfiles_target dotlaser_filetype dotlaser_profile; do
         target="$(dotlaser_abspath "$target")"
         dotfiles_target="$(dotlaser_abspath "$dotfiles_target")"
         dotlaser_status "$target" "$dotfiles_target"
@@ -438,11 +460,11 @@ while [[ $# -gt 0 ]]; do
     param=$1
     value=$2
     case $param in
-        -h | --help | help)
+        -h | --help)
             usage
             exit
             ;;
-        -v | --version | version)
+        -v | --version)
             version
             exit
             ;;
@@ -450,32 +472,42 @@ while [[ $# -gt 0 ]]; do
             dotlaser_config="$(readlink -m "$value")"
             shift
             ;; 
-        -b | --bootstrap | bootstrap)
+        -b | --bootstrap)
             task="bootstrap"
             target="$(readlink -m "$value")"
             shift
             ;; 
-        -a | --add | add)
+        -a | --add)
             task="add"
             target="$(readlink -m "$value")"
             shift
             ;; 
-        -r | --remove | remove)
+        -r | --remove)
             task="remove"
             target="$(readlink -m "$value")"
             shift
             ;; 
-        -i | --install | install)
+        -i | --install)
             task="install"
+            # If followed by a non-option, set it as a target and shift
+            if [[ ! ${value:0:1} = "-" ]]; then
+              target="$(readlink -m "$value")"
+              shift
+            fi
             ;; 
-        -u | --update | update)
+        -u | --update)
             task="update"
             ;; 
-        -l | --list | list)
+        -l | --list)
             task="list"
             ;; 
-        --uninstall | uninstall)
+        --uninstall)
             task="uninstall"
+            # If followed by a non-option, set it as a target and shift
+            if [[ ! ${value:0:1} = "-" ]]; then
+              target="$(readlink -m "$value")"
+              shift
+            fi
             ;;
         *)
             echo "Error: unknown parameter \"$param\""
@@ -523,7 +555,6 @@ case $task in
         dotlaser_update
         ;;
     list)
-        echo "Listing dotfiles"
         dotlaser_list
         ;;
     uninstall)
