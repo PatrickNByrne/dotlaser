@@ -9,11 +9,10 @@
 #    Todo:
 #        Add profile support
 #        Add shim bootstrap method
-#        On remove - check if installed and prune
 #        Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
-version=0.1.8
+version=0.1.9
 
 # --- Functions ----------------------------------------------------
 
@@ -314,6 +313,7 @@ dotlaser_add()
 
 dotlaser_remove()
 {
+    # Set target to a relative path for configuration search
     target="$(dotlaser_relpath "$target")" 
     # Read in the config file entry for target 
     IFS=':' read -r target dotfiles_target dotlaser_filetype dotlaser_profile <<<"$(grep -m 1 "$target:" "$dotfiles_config")"
@@ -322,7 +322,18 @@ dotlaser_remove()
         echo "Error: File not found in config"
         exit 1
     fi
+    # Get absolute file paths
     dotfiles_target="$(dotlaser_abspath "$dotfiles_target")"
+    target="$(dotlaser_abspath "$target")"
+    # Check if the file is installed and remove
+    dotlaser_status "$target" "$dotfiles_target"
+    if [[ "$dotlaser_status" = "Installed" ]]; then
+        echo "Uninstalling $target"
+        # This is a precaution - Check if target is a symlink
+        if [[ -h "$target" ]]; then
+            rm -r "$target"
+        fi
+    fi
     # Verify removal
     printf "You're about to remove %s from your dotfiles directory\n" "$dotfiles_target"
     read -p "Is this correct? [y/N]: " user_choice

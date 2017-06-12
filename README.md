@@ -12,7 +12,7 @@ Subtree installation adds this module to your git repository in its entirety. Wh
 
 ##### Example
 <code>cd &lt;your dotfiles directory&gt;</code>  
-<code>git subtree add --prefix ./dotlaser/ https://github.com/PatrickNByrne/dotlaser master --squash</code>  
+<code>git subtree add --prefix dotlaser/ https://github.com/PatrickNByrne/dotlaser master --squash</code>  
 <code>./dotlaser/dotlaser.sh -b .</code>
 
 ### Submodule
