@@ -1,9 +1,48 @@
+#           ____        __  __                        
+#          / __ \____  / /_/ /   ____ _________  _____
+#         / / / / __ \/ __/ /   / __ `/ ___/ _ \/ ___/
+#        / /_/ / /_/ / /_/ /___/ /_/ (__  )  __/ /    
+#       /_____/\____/\__/_____/\__,_/____/\___/_/   ___             __
+#                                / _ \___ _    __  / _ \___ _    __/ /
+#                               / ___/ -_) |/|/ / / ___/ -_) |/|/ /_/ 
+#                              /_/   \__/|__,__/ /_/   \__/|__,__(_)  
+#
+### Script Configuration ###################################
+
+### dotfiles_dir
+# Set the location to store your dotfile
+#   Example: dotfiles_dir="$HOME/dotfiles"
+
 dotfiles_dir="$HOME/dotfiles"
+
+### dotfiles_backup_dir
+# By default, all files are backed up before being removed.
+# Set the location of the backup directory
+#   Example: dotfiles_backup_dir="$HOME/dotfiles_backup"
+
 dotfiles_backup_dir="$HOME/dotfiles_backup"
+
+### dotfiles_config
+# Location of the managed file list
+#   Example: dotfiles_config="$dotfiles_dir/dotlaser.files"
+
 dotfiles_config="$dotfiles_dir/dotlaser.files"
+
+### dotlaser_gitdir
 # Specify the git directory for dotlaser updates
+#   Example: dotlaser_gitdir="$dotfiles_dir/dotlaser"
+
 dotlaser_gitdir=""
+
+### dotlaser_updatetype
 # Specify the git type for updates. [submod,subtree,hard]
+#   Example: dotlaser_updatetype="subtree"
+
 dotlaser_updatetype=""
+
+### dotlaser_repo
 # Specify the dotlaser repo
+#   Example: dotlaser_repo="https://github.com/PatrickNByrne/dotlaser.git"
+
 dotlaser_repo="https://github.com/PatrickNByrne/dotlaser.git"
+
