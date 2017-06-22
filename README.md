@@ -10,7 +10,7 @@ Other version control systems are supported as well via the manual installation 
 
 Subtree installation adds this module to your git repository in its entirety. When cloning your dotfiles repo to a new computer, you will not have to initialize the dotlaser module. This is the preferred installation method. When bootstrapping, select the "link" method to enjoy the most effortless dotlaser experience. 
 
-##### Example
+###### Example
 <code>cd &lt;your dotfiles directory&gt;</code>  
 <code>git subtree add --prefix dotlaser/ https://github.com/PatrickNByrne/dotlaser master --squash</code>  
 <code>./dotlaser/dotlaser.sh -b .</code>
@@ -19,16 +19,16 @@ Subtree installation adds this module to your git repository in its entirety. Wh
 
 Submodule installation adds dotlaser to your git repository as a link. When cloning your dotfiles repo to a new system, you will have to initialize this module before it can be used (unless you use the "hard" bootstrapping option). 
 
-##### Example
+###### Example
 <code>cd &lt;your dotfiles directory&gt;</code>  
 <code>git submodule add https://github.com/PatrickNByrne/dotlaser ./dotlaser</code>  
 <code>./dotlaser/dotlaser.sh -b .</code>
 
 ### Manually
 
-Manual installation will clone the dotfiles repository to any location you choose. You can place this repo directly into your VCS directory for tracking, or bootstrap in "hard" mode and delete the repository alltogether. 
+Manual installation will clone the dotfiles repository to any location you choose. You can place this repo directly into your VCS directory for tracking, or bootstrap in "hard" mode and delete the repository altogether. 
 
-##### Example
+###### Example
 <code>git clone https://github.com/PatrickNByrne/dotlaser</code>  
 <code>./dotlaser/dotlaser.sh -b .</code>  
 
@@ -59,27 +59,27 @@ Using dotlaser consists of adding and removing files from your VCS and then link
 
 When you add a file/folder to dotlaser, the target is copied to your dotfiles folder and added to your file list.
 
-##### Example
+###### Example
 <code>dotlaser.sh -a ~/.vimrc</code>  
 
 ### Remove a file/folder
 
 When you remove a file/folder, the target is deleted from your dotfiles folder and removed from your file list.
 
-##### Example
+###### Example
 <code>dotlaser.sh -r ~/.vimrc</code>  
 
 ### Install dotfiles
 
 When installing, the target location and the target file/folder are read from your file list. Then a symbolic link is created in the target location that refers to the file/folder in your dotfiles directory. 
 
-##### Example
+###### Example
 <code>dotlaser.sh -i</code>  
 
 ### Uninstall dotfiles
 
 Uninstalling will remove all linked files from their installed locations.
 
-##### Example
+###### Example
 <code>dotlaser.sh --uninstall</code>  
 
