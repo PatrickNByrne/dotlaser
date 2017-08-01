@@ -1,7 +1,7 @@
 #!/bin/bash
 # ------------------------------------------------------------------
 # Author: Patrick Byrne
-# Copywrite: Patrick Byrne 2017
+# Copyright: Patrick Byrne 2017
 # License: Apache 2.0
 # Title: dotlaser
 # Description:
