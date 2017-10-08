@@ -11,7 +11,7 @@
 #      Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
-version=0.1.11
+version=0.1.12
 
 # --- Functions ----------------------------------------------------
 
@@ -503,7 +503,7 @@ dotlaser_list()
 dotlaser_cleanup()
 {
   # Remove the temporary dotfiles list
-  if [[ ! "$task" = "bootstrap" ]]; then
+  if [[ -n "$dotfiles_list" ]]; then
     rm "$dotfiles_list"
   fi
 
@@ -591,10 +591,10 @@ trap 'dotlaser_cleanup' EXIT
 dotlaser_path="$(dotlaser_abspath "${BASH_SOURCE[0]}")"
 dotlaser_dir="$(dirname "$dotlaser_path")"
 
-dotlaser_loadconfig
-
 # Check if "task" is not set, print usage, and exit
 [[ -z $task ]] && usage && exit 1
+
+dotlaser_loadconfig
 
 # Set a default profile if one is not specified
 [[ -z $dotlaser_profile ]] && dotlaser_profile="default"
