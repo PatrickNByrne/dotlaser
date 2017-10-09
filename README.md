@@ -1,12 +1,23 @@
 # dotlaser
-#### Zap your configs!
+[![GitHub issues](https://img.shields.io/github/issues/patricknbyrne/dotlaser.svg)](https://github.com/PatrickNByrne/dotlaser/issues)
+[![license](https://img.shields.io/github/license/patricknbyrne/dotlaser.svg)](https://github.com/PatrickNByrne/dotlaser/blob/master/LICENSE)
+
+A bash script to make managing your dotfiles effortless and precise.
+
+### Key Features
+
+* Dependency adverse - You shouldn't need a development environment to setup your dotfiles
+* Automatic backups when installing or removing files - To err is human, having backups, divine
+* Single target installation and profile support - Sometimes you DON'T need the kitchen sink...
+* Supports multiple installation methods and version control systems - My way or your way, your choice
+* Automatic updates - Banish bugs with ease
+* Comprehensive test suite - All changes to the core code are thoroughly vetted
 
 ## Installing
 
-dotlaser can be installed in many way. If you are using git to manage your dotfiles, you can install the script as a submodule or subtree.
-Other version control systems are supported as well via the manual installation method. 
+Installing requires just two steps, cloning the repository, and bootstrapping the dotfiles folder. If you are using git to manage your dotfiles, you can install the script as a submodule or subtree. Other version control systems are supported as well via the manual installation method below. 
 
-### Subtree
+#### Subtree
 
 Subtree installation adds this module to your git repository in its entirety. When cloning your dotfiles repo to a new computer, you will not have to initialize the dotlaser module. This is the preferred installation method. When bootstrapping, select the "link" method to enjoy the most effortless dotlaser experience. 
 
@@ -15,7 +26,7 @@ Subtree installation adds this module to your git repository in its entirety. Wh
 <code>git subtree add --prefix dotlaser/ https://github.com/PatrickNByrne/dotlaser master --squash</code>  
 <code>./dotlaser/dotlaser.sh -b .</code>
 
-### Submodule
+#### Submodule
 
 Submodule installation adds dotlaser to your git repository as a link. When cloning your dotfiles repo to a new system, you will have to initialize this module before it can be used (unless you use the "hard" bootstrapping option). 
 
@@ -24,25 +35,28 @@ Submodule installation adds dotlaser to your git repository as a link. When clon
 <code>git submodule add https://github.com/PatrickNByrne/dotlaser ./dotlaser</code>  
 <code>./dotlaser/dotlaser.sh -b .</code>
 
-### Manually
+#### Manual Installation
 
-Manual installation will clone the dotfiles repository to any location you choose. You can place this repo directly into your VCS directory for tracking, or bootstrap in "hard" mode and delete the repository altogether. 
+To install manually, clone the dotfiles repository to any location you choose. You can place this repo directly into your VCS directory for tracking, or bootstrap in "hard" mode and delete the repository altogether. 
 
 ###### Example
 <code>git clone https://github.com/PatrickNByrne/dotlaser</code>  
 <code>./dotlaser/dotlaser.sh -b .</code>  
 
-## Bootstrapping
+### Bootstrapping
 
-Bootstrapping prepares your dotfiles directory for use with dotlaser. The two default configuration files are created and the user is prompted to select an installation method. The installation methods are discussed below. 
+Bootstrapping prepares your dotfiles directory for use with dotlaser. The default configuration files are created and the user is prompted to select an installation method. The installation methods are discussed below. 
 
-### Hard
+#### Hard
+
 Hard mode copies the dotlaser script into your target dotfiles directory.
 
-### Link
+#### Link
+
 Link mode creates a symbolic link to the dotlaser script, in your dotfiles directory.
 
-### Manual
+#### Manual
+
 When you select manual mode, only the configuration files are created in your dotfiles directory. You must then move or link the script to an appropriate location. 
 
 ## Configuration
@@ -55,31 +69,40 @@ All files managed by dotlaser are stored in the users dotfiles directory and con
 
 Using dotlaser consists of adding and removing files from your VCS and then linking them to their appropriate locations.
 
-### Add a file/folder
+#### Add a file/folder
 
-When you add a file/folder to dotlaser, the target is copied to your dotfiles folder and added to your file list.
+When you add a file/folder to dotlaser, the target is copied to your dotfiles folder and added to your default file list. You can also use the "-p" flag to specify a profile to add the file to instead of the default. 
+NOTE: Hidden files/folders (filename starts with .) have their leading "." stripped prior to addition to the dotfiles directory"
 
 ###### Example
 <code>dotlaser.sh -a ~/.vimrc</code>  
 
-### Remove a file/folder
+#### Remove a file/folder
 
 When you remove a file/folder, the target is deleted from your dotfiles folder and removed from your file list.
 
 ###### Example
 <code>dotlaser.sh -r ~/.vimrc</code>  
 
-### Install dotfiles
+#### Install dotfiles
 
-When installing, the target location and the target file/folder are read from your file list. Then a symbolic link is created in the target location that refers to the file/folder in your dotfiles directory. 
+When installing, the target location is read from your file list and a symbolic link is created that refers to the file/folder in your dotfiles directory. By default, the installation flag with no arguments will install all default profile dotfiles. To install another profile, simply specify the profile with the "-p" flag. You can also install only a single file by passing the file name with the installation flag. 
 
 ###### Example
 <code>dotlaser.sh -i</code>  
 
-### Uninstall dotfiles
+#### Updating
+
+You can update dotlaser automatically in most cases. First you must configure your dotlaserrc to specify the <code>dotlaser_git_dir</code> and <code>dotlaser_updatetype</code>. The "dotlaser_git_dir" is the location that dotlaser is installed, or you would like to clone dotlaser into. The "dotlaser_updatetype" indicates the way dotlaser will update. Use subtree or submod if you've installed dotlaser as a subtree or submodule.
+
+###### Example
+<code>dotlaser.sh -u<code>
+
+#### Uninstall dotfiles
 
 Uninstalling will remove all linked files from their installed locations.
 
 ###### Example
 <code>dotlaser.sh --uninstall</code>  
+
 
