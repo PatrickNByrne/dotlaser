@@ -15,7 +15,8 @@ Bash Automated Testing System - [Bats](https://github.com/sstephenson/bats)
 Run dotlaser.bats from the tests directory
 
 ###### Example
-<code>
+
+```
 $ ./dotlaser.bats   
  ✓ Test - Basic usage, version, or missing task  
  ✓ Test - Invalid config or bootstrap directory  
@@ -35,5 +36,4 @@ $ ./dotlaser.bats
  ✓ Test - Set profile and test adds, removes, and installs  
   
 16 tests, 0 failures  
-</code>  
-
+```
