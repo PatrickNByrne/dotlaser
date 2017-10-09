@@ -11,7 +11,7 @@
 #      Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
-version=0.1.13
+version=0.1.14
 
 # --- Functions ----------------------------------------------------
 
@@ -239,16 +239,10 @@ dotlaser_update()
       dotlaser_version="$(grep "^ver.*=" "$dotlaser_gitdir/dotlaser.sh")"
       dotlaser_version="$(echo "$dotlaser_version" | sed 's/^version=//')"
       # Verify overwrite
-      printf "You're about to update dotlaser from version %s to %s\n" \
+      printf "Updated from version %s to %s\n" \
         "$version" "$dotlaser_version" 
-      printf "Overwriting %s with %s\n" \
-        "$dotlaser_path" "$dotlaser_gitdir/dotlaser.sh"
-      read -p "Is this correct? [y/N]: " user_choice
-      user_choice="${user_choice:0:1}"
-      [[ ! ${user_choice,,} = "y" ]] && exit 0
-      cp --remove-destination "$dotlaser_gitdir/dotlaser.sh" \
-        "$(dotlaser_abspath $dotlaser_path)"
       )
+      echo "Don't forget to commit your changes!"
     ;;
     subtree)
       (
