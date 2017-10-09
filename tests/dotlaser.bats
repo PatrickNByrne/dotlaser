@@ -307,7 +307,7 @@ bootstrap_and_add() {
   run bash -c "echo y | ${test_dir}/dotfiles/dotlaser.sh \
     -c ${test_dir}/dotfiles/dotlaserrc -u"
   [ "$status" -eq 0 ]
-  [[ "$output" =~ "You're about to update dotlaser from version" ]]
+  [[ "$output" =~ "Updated from version" ]]
 }
 
 @test "Test - Install dotlaser and update in subtree mode" {
