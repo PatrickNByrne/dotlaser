@@ -13,14 +13,14 @@
 # Set the location to store your dotfile
 #   Example: dotfiles_dir="$HOME/dotfiles"
 
-dotfiles_dir="/tmp/dotfiles"
+dotfiles_dir="/tmp/dotlaser_test_dir./dotfiles"
 
 ### dotfiles_backup_dir
 # By default, all files are backed up before being removed.
 # Set the location of the backup directory
 #   Example: dotfiles_backup_dir="$HOME/dotfiles_backup"
 
-dotfiles_backup_dir="/tmp/dotfiles_backup"
+dotfiles_backup_dir="/tmp/dotlaser_test_dir./dotfiles_backup"
 
 ### dotfiles_config
 # Location of the managed file list
