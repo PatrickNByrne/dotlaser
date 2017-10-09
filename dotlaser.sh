@@ -11,7 +11,7 @@
 #      Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
-version=0.1.12
+version=0.1.13
 
 # --- Functions ----------------------------------------------------
 
@@ -230,11 +230,6 @@ dotlaser_update()
         # Check for changes in dotlaser repo dir
         git ls-files -o | grep >/dev/null . && \
           echo "Warning: There are uncommited files in $dotlaser_gitdir"
-        git diff --quiet
-        if [[ "$?" -ne "0" ]]; then
-          echo "Error: Changes detected in $dotlaser_path"
-          exit 1
-        fi
         git fetch -p
         git checkout --force "origin/master"
       else
@@ -261,11 +256,6 @@ dotlaser_update()
       # Check for changes in dotlaser repo dir
       git ls-files -o | grep >/dev/null . && \
         echo "Warning: There are uncommited files in $dotlaser_gitdir"
-      git diff --quiet
-      if [[ "$?" -ne "0" ]]; then
-        echo "Error: Changes detected in $dotlaser_path"
-        exit 1
-      fi
       # Get the subtree prefix
       dotfiles_dir="$(dotlaser_abspath "$dotfiles_dir")"
       subtree_prefix="$(echo "$dotlaser_gitdir" | sed "s@$dotfiles_dir/@@")"
@@ -284,11 +274,6 @@ dotlaser_update()
       # Check for changes in dotlaser repo dir
       git ls-files -o | grep >/dev/null . && \
         echo "Warning: There are uncommited files in $dotlaser_gitdir"
-      git diff --quiet
-      if [[ "$?" -ne "0" ]]; then
-        echo "Error: Changes detected in $dotlaser_path"
-        exit 1
-      fi
       git checkout -f master
       git pull --squash
       # Get new script version
