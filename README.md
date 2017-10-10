@@ -22,26 +22,32 @@ Installing requires just two steps, cloning the repository, and bootstrapping th
 Subtree installation adds this module to your git repository in its entirety. When cloning your dotfiles repo to a new computer, you will not have to initialize the dotlaser module. This is the preferred installation method. When bootstrapping, select the "link" method to enjoy the most effortless dotlaser experience. 
 
 ###### Example
-`cd &lt;your dotfiles directory&gt;`  
-`git subtree add --prefix dotlaser/ https://github.com/PatrickNByrne/dotlaser master --squash`  
-`./dotlaser/dotlaser.sh -b .`
+```
+cd <your dotfiles directory>  
+git subtree add --prefix dotlaser/ https://github.com/PatrickNByrne/dotlaser master --squash  
+./dotlaser/dotlaser.sh -b ./
+```
 
 #### Submodule
 
 Submodule installation adds dotlaser to your git repository as a link. When cloning your dotfiles repo to a new system, you will have to initialize this module before it can be used (unless you use the "hard" bootstrapping option). 
 
 ###### Example
-`cd &lt;your dotfiles directory&gt;`  
-`git submodule add https://github.com/PatrickNByrne/dotlaser ./dotlaser`  
-`./dotlaser/dotlaser.sh -b .`
+```
+cd <your dotfiles directory>  
+git submodule add https://github.com/PatrickNByrne/dotlaser ./dotlaser
+./dotlaser/dotlaser.sh -b ./
+```
 
 #### Manual Installation
 
 To install manually, clone the dotfiles repository to any location you choose. You can place this repo directly into your VCS directory for tracking, or bootstrap in "hard" mode and delete the repository altogether. 
 
 ###### Example
-`git clone https://github.com/PatrickNByrne/dotlaser`  
-`./dotlaser/dotlaser.sh -b .`  
+```
+git clone https://github.com/PatrickNByrne/dotlaser 
+./dotlaser/dotlaser.sh -b ./  
+```
 
 ### Bootstrapping
 
