@@ -264,6 +264,21 @@ bootstrap_and_add() {
   [[ -f "${test_dir}/dotfiles_backup/.testdir/test3" ]]
 }
 
+@test "Test - Install all items from dotfiles directory relative to $HOME" {
+  # Set the directory to $HOME
+  export HOME="$test_dir"
+  bootstrap_and_add
+  # Install all files and test
+  run bash -c "printf 'y\ny\ny\ny\n' | dotlaser.sh \
+    -c ${test_dir}/dotfiles/dotlaserrc -i"
+  [ "$status" -eq 0 ]
+  [[ "${lines[1]}" =~ "Installing dotfiles" ]]
+  [[ -L "${test_dir}/test1" ]]
+  [[ -L "${test_dir}/.test2" ]]
+  [[ -f "${test_dir}/.testdir/test3" ]]
+  [[ -L "${test_dir}/.testdir" ]]
+}
+
 @test "Test - Uninstall all items from dotfiles directory" {
   bootstrap_and_add
   # Install all files
@@ -352,7 +367,7 @@ bootstrap_and_add() {
   # Set the git dir and update type
   sed -i "s@gitdir=\"@gitdir=\"${test_dir}/dotfiles/dotlaser@" \
     "${test_dir}/dotfiles/dotlaserrc"
-  sed -i "s@updatetype=\"@updatetype=\"subtree@" \
+  sed -i "s@updatetype=\"@updatetype=\"submod@" \
     "${test_dir}/dotfiles/dotlaserrc"
   # Install the current version of the script
   cp "${dotlaser_dir}/dotlaser.sh" "${test_dir}/dotfiles/"
