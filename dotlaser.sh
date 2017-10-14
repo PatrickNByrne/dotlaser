@@ -11,7 +11,16 @@
 #      Make sure this works in zsh and osx - (sed -i)
 # ------------------------------------------------------------------
 
-version=0.1.14
+version=0.1.15
+
+# --- Config Variables ---------------------------------------------
+
+dotfiles_dir=""
+dotfiles_backup_dir=""
+dotfiles_config=""
+dotlaser_gitdir=""
+dotlaser_updatetype=""
+dotlaser_repo=""
 
 # --- Functions ----------------------------------------------------
 
@@ -53,8 +62,8 @@ dotlaser_abspath()
 {
   [[ -z "$1" ]] && echo "Error: Null Path" && exit 1
   if [[ "$task" = "install" ]] || [[ "$task" = "list" ]]; then
-    if [[ "$1" = '$HOME'* ]]; then
-      echo "$1" | sed "s@\$HOME@$HOME@"
+    if [[ "$1" = "\$HOME"* ]]; then
+      echo "${1/\$HOME/$HOME}"
       return
     else
       echo "$1"
@@ -70,7 +79,7 @@ dotlaser_abspath()
 dotlaser_relpath()
 {
   if (echo "$1" | grep -q "$HOME"); then
-    echo "$1" | sed "s@$HOME@\$HOME@"
+    echo "${1/$HOME/\$HOME}"
   else
     echo "$1"
   fi
@@ -83,7 +92,7 @@ dotlaser_loadconfig()
     if [[ -f "$(dotlaser_abspath "$HOME/.dotlaserrc")" ]]; then
       dotlaser_config="$(dotlaser_abspath "$HOME/.dotlaserrc")"
     else
-      dotlaser_config="$(dotlaser_abspath $(dirname "$0")/dotlaserrc)"
+      dotlaser_config="$(dotlaser_abspath "$(dirname "$0")/dotlaserrc")"
     fi
   fi
   # Verify config file is sane and source it
@@ -92,6 +101,7 @@ dotlaser_loadconfig()
     exit 1
   else
     echo "Reading config file: $dotlaser_config"
+    # shellcheck source=/dev/null
     source "$dotlaser_config"
   fi
   # Skip path verification if bootstrapping 
@@ -102,6 +112,9 @@ dotlaser_loadconfig()
     exit 1
   elif [[ ! -f "$dotfiles_config" ]]; then
     echo "$dotfiles_config does not exist. Please check your config"
+    exit 1
+  elif [[ ! -d "$dotfiles_backup_dir" ]]; then
+    echo "$dotfiles_backup_dir does not exist. Please check your config"
     exit 1
   fi
   # Strip the comments and blank lines from the file list for reading
@@ -159,7 +172,7 @@ dotlaser_bootstrap()
   if [[ -f "$1/dotlaserrc" ]]; then
     # Verify removal
     printf "You're about to overwrite %s\n" "$1/dotlaserrc"
-    read -p "Is this correct? [y/N]: " user_choice
+    read -rp "Is this correct? [y/N]: " user_choice
     user_choice="${user_choice:0:1}"
     [[ ! ${user_choice,,} = "y" ]] && exit
   fi
@@ -168,7 +181,7 @@ dotlaser_bootstrap()
   sed -i "s@dotfiles_dir=.*@dotfiles_dir=\"$(dotlaser_relpath "$1")\"@g" \
     "$1/dotlaserrc"
   printf "How would you like to install? [1 - Hard, 2 - Link, 3 - Manual]\n"
-  read -p "Please select install option [1,2,3]: " user_choice
+  read -rp "Please select install option [1,2,3]: " user_choice
   case "$user_choice" in
     1)
       echo "Installing in hard copy mode"
@@ -183,10 +196,10 @@ dotlaser_bootstrap()
       if [[ "$dotlaser_path" = *"$user_home"* ]] && \
         [[ "$target" = *"$user_home"* ]]; then
           # Get the number of steps back to $HOME and replace with ../
-          rellink="$(echo $(dotlaser_abspath "$1") | \
+          rellink="$(dotlaser_abspath "$1" | \
             sed -e "s@$user_home@@" -e 's@[^/]@@g' -e 's@/@../@g')"
           # Strip the home dir from the dotlaser path to replace later
-          reltarget="$(echo "$dotlaser_path" | sed "s@$user_home/@@")"
+          reltarget="${dotlaser_path#$user_home}"
           ln -s "$rellink$reltarget" "$1"
       else
           ln -s "$dotlaser_path" "$1"
@@ -201,8 +214,7 @@ dotlaser_bootstrap()
 dotlaser_update()
 {
   # Check if git is installed
-  git --version 2>&1 >/dev/null
-  [[ "$?" -ne "0" ]] && echo "Error: git not found" && exit 1
+  command -v git >/dev/null || { echo "Error: git not found"; exit 1; }
   # Check if git dir is set and get a full path
   if [[ -n "$dotlaser_gitdir" ]]; then
     dotlaser_gitdir="$(dotlaser_abspath "$dotlaser_gitdir")"
@@ -225,19 +237,21 @@ dotlaser_update()
       fi
       # Get into the git dir and update/clone
       (
-      cd "$dotlaser_gitdir"
+      cd "$dotlaser_gitdir" || exit 1
       if [[ -e "$dotlaser_gitdir/.git" ]]; then
         # Check for changes in dotlaser repo dir
         git ls-files -o | grep >/dev/null . && \
           echo "Warning: There are uncommited files in $dotlaser_gitdir"
-        git fetch -p
-        git checkout --force "origin/master"
+        git fetch -p || { echo "Error: Update fetch failed"; exit 1; }
+        git checkout --force "origin/master" || \
+        { echo "Error: Update checkout failed"; exit 1; }
       else
-        git clone --depth=1 "$dotlaser_repo" .
+        git clone --depth=1 "$dotlaser_repo" . || \
+        { echo "Error: Update clone failed"; exit 1; }
       fi
       # Get new script version
       dotlaser_version="$(grep "^ver.*=" "$dotlaser_gitdir/dotlaser.sh")"
-      dotlaser_version="$(echo "$dotlaser_version" | sed 's/^version=//')"
+      dotlaser_version="${dotlaser_version#version=}"
       # Verify overwrite
       printf "Updated from version %s to %s\n" \
         "$version" "$dotlaser_version" 
@@ -246,33 +260,36 @@ dotlaser_update()
     ;;
     subtree)
       (
-      cd "$dotfiles_dir"
+      cd "$dotfiles_dir" || exit 1
       # Check for changes in dotlaser repo dir
       git ls-files -o | grep >/dev/null . && \
         echo "Warning: There are uncommited files in $dotlaser_gitdir"
       # Get the subtree prefix
-      dotfiles_dir="$(dotlaser_abspath "$dotfiles_dir")"
-      subtree_prefix="$(echo "$dotlaser_gitdir" | sed "s@$dotfiles_dir/@@")"
+      dotfiles_dir_prefix="$(dotlaser_abspath "$dotfiles_dir")/"
+      subtree_prefix="${dotlaser_gitdir#$dotfiles_dir_prefix}"
+      # Update or exit with an error message
       git subtree pull --prefix="$subtree_prefix" --squash \
-        -m "Update Plugin" $dotlaser_repo master
+        -m "Update Plugin" $dotlaser_repo master || \
+        { echo "Error: Update failed"; exit 1; }
       # Get new script version
       dotlaser_version="$(grep "^ver.*=" "$dotlaser_gitdir/dotlaser.sh")"
-      dotlaser_version="$(echo "$dotlaser_version" | sed 's/^version=//')"
+      dotlaser_version="${dotlaser_version#version=}"
       printf "Updated from version %s to %s\n" "$version" "$dotlaser_version"
       )
       echo "Don't forget to commit your changes!"
     ;;
     submod)
       (
-      cd "$dotlaser_gitdir"
+      cd "$dotlaser_gitdir" || exit 1
       # Check for changes in dotlaser repo dir
       git ls-files -o | grep >/dev/null . && \
         echo "Warning: There are uncommited files in $dotlaser_gitdir"
-      git checkout -f master
-      git pull --squash
+      git checkout -f master || \
+        { echo "Error: Update checkout failed"; exit 1; }
+      git pull --squash || { echo "Error: Update pull failed"; exit 1; }
       # Get new script version
       dotlaser_version="$(grep "^ver.*=" "$dotlaser_gitdir/dotlaser.sh")"
-      dotlaser_version="$(echo "$dotlaser_version" | sed 's/^version=//')"
+      dotlaser_version="${dotlaser_version#version=}"
       printf "Updated from version %s to %s\n" "$version" "$dotlaser_version"
       )
       echo "Don't forget to commit your changes!"
@@ -298,13 +315,13 @@ dotlaser_add()
   fi
   # Strip leading dots from file names
   if [[ "${target_basename:0:1}" = "." ]]; then
-    target_basename="$(echo "$target_basename" | sed 's/^.//')"
+    target_basename="${target_basename#.}"
   fi
   # Create relative paths
   target_relpath="$(dotlaser_relpath "$1")"
-  dotfile_relpath="$(dotlaser_relpath "$dotfiles_dir/$target_basename")"
+  dotfile_relpath="$(dotlaser_relpath "${dotfiles_dir}/${target_basename}")"
   # Copy the target file to dotfiles location
-  cp -a "$1" "$dotfiles_dir/$target_basename"
+  cp -a "$1" "${dotfiles_dir}/${target_basename}"
   # Add the target file to dotlaser file list
   printf "%s:%s:%s:%s\n" "$target_relpath" "$dotfile_relpath" \
     "$dotlaser_filetype" "$dotlaser_profile" >> "$dotfiles_config"
@@ -337,7 +354,7 @@ dotlaser_remove()
   # Verify removal
   printf "You're about to remove %s from your dotfiles directory\n" \
     "$dotfiles_target"
-  read -p "Is this correct? [y/N]: " user_choice
+  read -rp "Is this correct? [y/N]: " user_choice
   user_choice="${user_choice:0:1}"
   [[ ! ${user_choice,,} = "y" ]] && exit 0
   # Remove file from config
@@ -373,7 +390,7 @@ dotlaser_install()
         [[ "$loopstop" = "$target" ]] || \
         [[ "$loopstop" = "$dotfiles_target" ]]; then
           # Only match objects of the specified profile
-          if [[ $profilestop = $dotlaser_profile ]]; then
+          if [[ "$profilestop" = "$dotlaser_profile" ]]; then
             dotlaser_status "$target" "$dotfiles_target"       
             case "$dotlaser_status" in
               Installed)
@@ -385,7 +402,7 @@ dotlaser_install()
                 if [[ -e "$target" ]]; then
                   # Verify removal
                   printf "You're about to overwrite %s\n" "$target"
-                  read -p "Is this correct? [y/N]: " user_choice
+                  read -rp "Is this correct? [y/N]: " user_choice
                   user_choice="${user_choice:0:1}"
                   [[ ! ${user_choice,,} = "y" ]] && continue
                   # Backup the existing file
@@ -582,17 +599,17 @@ dotlaser_loadconfig
 case $task in
   bootstrap)
     echo "Bootstrapping $target"
-    dotlaser_target $target
-    dotlaser_bootstrap $target
+    dotlaser_target "$target"
+    dotlaser_bootstrap "$target"
   ;;
   add)
     echo "Adding $target"
-    dotlaser_target $target
-    dotlaser_add $target
+    dotlaser_target "$target"
+    dotlaser_add "$target"
   ;;
   remove)
     echo "Removing $target"
-    dotlaser_remove $target
+    dotlaser_remove "$target"
   ;;
   install)
     echo "Installing dotfiles"
